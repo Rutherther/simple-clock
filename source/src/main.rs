@@ -25,6 +25,7 @@ use clock_app::{ClockApp, ClockInterrupt};
 use clock_display::{ClockDisplay, DisplayPart};
 use clock_display_viewer::ClockDisplayViewer;
 use clock_state::ClockState;
+use simple_clock::button::Button;
 use core::{alloc::Layout, cell::RefCell, convert::Infallible, panic::PanicInfo};
 use cortex_m::asm::wfi;
 use cortex_m_rt::entry;

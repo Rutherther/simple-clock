@@ -29,7 +29,7 @@ impl ClockDisplayViewer {
         }
     }
 
-    pub fn clock_display<'a>(&'a mut self) -> &'a mut ClockDisplay {
+    pub fn clock_display(&mut self) -> &mut ClockDisplay {
         &mut self.clock_display
     }
 

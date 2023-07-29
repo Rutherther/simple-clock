@@ -4,7 +4,6 @@
 use defmt_rtt as _; // global logger
 
 use embedded_alloc::Heap;
-use stm32f1xx_hal::prelude::*;
 
 use panic_probe as _;
 

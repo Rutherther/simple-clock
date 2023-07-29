@@ -86,8 +86,8 @@ impl<ACTIVELEVEL: ActiveLevel> Button<ACTIVELEVEL> {
 
         if raw_pressed != self.prev_state {
             self.debounce = 0;
-        } else if self.debounce < u8::MAX {
-            self.debounce += 1;
+        } else {
+            self.debounce = self.debounce.saturating_add(1);
         }
 
         self.prev_state = raw_pressed;

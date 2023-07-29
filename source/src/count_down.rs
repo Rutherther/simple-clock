@@ -29,7 +29,7 @@ where
     type Time = MicrosDurationU32;
 
     fn start(&mut self, count: Self::Time) {
-        self.counter.start(count.into()).unwrap();
+        self.counter.start(count).unwrap();
     }
 
     fn wait(&mut self) -> nb::Result<(), timer::Error> {

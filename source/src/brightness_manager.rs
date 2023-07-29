@@ -35,8 +35,10 @@ impl BrightnessManager {
             ]),
             brightness_interpolation: LinearInterpolation::new(vec![
                 Point::new(0, 1),
-                Point::new(6 * 60, 1),
-                Point::new(8 * 60, 50),
+                Point::new(5 * 60, 1),
+                Point::new(6 * 60, 20),
+                Point::new(7 * 60, 50),
+                Point::new(8 * 60, 70),
                 Point::new(12 * 60, 100),
                 Point::new(18 * 60, 90),
                 Point::new(20 * 60, 70),
@@ -93,5 +95,11 @@ impl BrightnessManager {
         if self.brightness() != interpolated as u8 {
             self.set_brightness(interpolated as i8);
         }
+    }
+}
+
+impl Default for BrightnessManager {
+    fn default() -> Self {
+        Self::new()
     }
 }

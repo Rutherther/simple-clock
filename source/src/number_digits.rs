@@ -8,7 +8,7 @@ impl NumberDigits for u8 {
         for _ in 0..digit_index {
             number /= 10;
         }
-        (number % 10) as u8
+        number % 10
     }
 }
 
