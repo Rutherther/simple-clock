@@ -311,7 +311,7 @@ fn main() -> ! {
         }
 
         let state = ClockState::new(
-            Calendar::from_seconds(Calendar::new(0, 0, 0, 1, 8, 2023), current_time),
+            Calendar::from_ticks(2023, current_time),
             MonoTimer::new(cp.DWT, cp.DCB, clocks),
         );
 
