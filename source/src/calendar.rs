@@ -232,6 +232,14 @@ impl Calendar {
         matches!(year % 4, 0 if year % 100 != 0 || year % 400 == 0)
     }
 
+    pub fn freeze(&mut self) {
+        self.frozen = true;
+    }
+
+    pub fn unfreeze(&mut self) {
+        self.frozen = true;
+    }
+
     fn days_in_month(month: u8, leap_year: bool) -> u8 {
         match month {
             2 if leap_year => 29,
