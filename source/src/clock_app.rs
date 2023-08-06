@@ -5,7 +5,7 @@ use stm32f1xx_hal::rtc::Rtc;
 
 use crate::{
     brightness_manager::BrightnessManager, button::ButtonState,
-    clock_display_viewer::ClockDisplayViewer, clock_state::ClockState, display_view::DisplayViews,
+    clock_display_viewer::{ClockDisplayViewer, DisplayView}, clock_state::ClockState,
 };
 
 pub struct ClockApp {
@@ -14,6 +14,7 @@ pub struct ClockApp {
     state: ClockState,
     buttons: [Box<dyn ClockButton + Send>; 4],
     brightness: BrightnessManager,
+    current_view: DisplayView
 }
 
 struct AppState<'a> {
@@ -21,6 +22,7 @@ struct AppState<'a> {
     display: &'a mut ClockDisplayViewer,
     state: &'a mut ClockState,
     brightness: &'a mut BrightnessManager,
+    current_view: &'a mut DisplayView
 }
 
 trait ClockButton {
@@ -47,6 +49,7 @@ impl ClockApp {
             rtc,
             display,
             state,
+            current_view: DisplayView::ClockView,
             buttons: [
                 Box::new(ButtonSwitchView),
                 Box::new(ButtonChangeTime),
@@ -83,6 +86,7 @@ impl ClockApp {
                 display: &mut self.display,
                 state: &mut self.state,
                 brightness: &mut self.brightness,
+                current_view: &mut self.current_view
             },
         );
     }
@@ -97,9 +101,10 @@ impl ClockButton for ButtonSwitchView {
         match state {
             ButtonState::JustPressed => {
                 let display = app.display;
-                let current_view =
-                    display.current_view().unwrap_or(DisplayViews::ClockView) as usize;
-                display.set_current_view(((current_view + 1) % DisplayViews::count()).into());
+                let current_view = *app.current_view as usize;
+                let new_view = ((current_view + 1) % core::mem::variant_count::<DisplayView>()).try_into().unwrap();
+                display.set_current_view(new_view);
+                *app.current_view = new_view;
             }
             _ => (),
         }

@@ -64,10 +64,21 @@ impl ClockDisplay {
         &mut self,
         part: DisplayPart,
         number: u32,
-        pad: bool,
+        pad: bool
     ) -> Result<(), DisplayError> {
         let offset = Self::get_part_offset(part);
         let size = Self::get_part_size(part);
+
+        self.show_number_at(offset, size, number, pad)
+    }
+
+    pub fn show_number_at(
+        &mut self,
+        offset: usize,
+        size: usize,
+        number: u32,
+        pad: bool,
+    ) -> Result<(), DisplayError> {
         let mut data = self.display.data();
 
         let mut number = number;
@@ -148,6 +159,24 @@ impl ClockDisplay {
         self.display.update()
     }
 
+    pub fn get_part_size(part: DisplayPart) -> usize {
+        match part {
+            DisplayPart::Whole => SIDE_DISPLAY_1_SIZE + MAIN_DISPLAY_SIZE + SIDE_DISPLAY_2_SIZE,
+            DisplayPart::MainDisplay => MAIN_DISPLAY_SIZE,
+            DisplayPart::SideDisplay1 => SIDE_DISPLAY_1_SIZE,
+            DisplayPart::SideDisplay2 => SIDE_DISPLAY_2_SIZE,
+        }
+    }
+
+    pub fn get_part_offset(part: DisplayPart) -> usize {
+        match part {
+            DisplayPart::Whole => 0,
+            DisplayPart::MainDisplay => MAIN_DISPLAY_OFFSET,
+            DisplayPart::SideDisplay1 => SIDE_DISPLAY_1_OFFSET,
+            DisplayPart::SideDisplay2 => SIDE_DISPLAY_2_OFFSET,
+        }
+    }
+
     fn update_colon(&mut self) {
         let data = self.display.data();
         if self.colon {
@@ -160,24 +189,6 @@ impl ClockDisplay {
                 .set_digit(COLON_DIGIT_1, data[COLON_DIGIT_1] & 0xFE);
             self.display
                 .set_digit(COLON_DIGIT_2, data[COLON_DIGIT_2] & 0xFE);
-        }
-    }
-
-    fn get_part_size(part: DisplayPart) -> usize {
-        match part {
-            DisplayPart::Whole => SIDE_DISPLAY_1_SIZE + MAIN_DISPLAY_SIZE + SIDE_DISPLAY_2_SIZE,
-            DisplayPart::MainDisplay => MAIN_DISPLAY_SIZE,
-            DisplayPart::SideDisplay1 => SIDE_DISPLAY_1_SIZE,
-            DisplayPart::SideDisplay2 => SIDE_DISPLAY_2_SIZE,
-        }
-    }
-
-    fn get_part_offset(part: DisplayPart) -> usize {
-        match part {
-            DisplayPart::Whole => 0,
-            DisplayPart::MainDisplay => MAIN_DISPLAY_OFFSET,
-            DisplayPart::SideDisplay1 => SIDE_DISPLAY_1_OFFSET,
-            DisplayPart::SideDisplay2 => SIDE_DISPLAY_2_OFFSET,
         }
     }
 }

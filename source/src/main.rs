@@ -1,6 +1,7 @@
 #![no_std]
 #![no_main]
 #![feature(alloc_error_handler)]
+#![feature(variant_count)]
 
 extern crate alloc;
 
@@ -13,7 +14,6 @@ pub mod clock_display_viewer;
 pub mod clock_state;
 pub mod count_down;
 pub mod display;
-pub mod display_view;
 pub mod linear_interpolation;
 pub mod number_digits;
 pub mod seven_segments;
@@ -23,7 +23,7 @@ use button::{ActiveHigh, Button, ButtonState};
 use calendar::Calendar;
 use clock_app::{ClockApp, ClockInterrupt};
 use clock_display::{ClockDisplay, DisplayPart};
-use clock_display_viewer::ClockDisplayViewer;
+use clock_display_viewer::{ClockDisplayViewer, DisplayView};
 use clock_state::ClockState;
 use core::{alloc::Layout, cell::RefCell, convert::Infallible, panic::PanicInfo};
 use cortex_m::asm::wfi;
@@ -31,7 +31,6 @@ use cortex_m_rt::entry;
 use count_down::{CountDown, CountDowner};
 use critical_section::Mutex;
 use display::Display;
-use display_view::DisplayViews;
 use embedded_alloc::Heap;
 use embedded_hal::digital::v2::OutputPin;
 use fugit::MicrosDurationU32;
@@ -291,7 +290,7 @@ fn main() -> ! {
         &mut afio.mapr,
         &clocks,
     );
-    display.set_current_view(DisplayViews::ClockSecondsView);
+    display.set_current_view(DisplayView::ClockView);
 
     let mut rtc = match Rtc::restore_or_new(dp.RTC, &mut backup_domain) {
         Restored(rtc) => rtc,
@@ -367,7 +366,7 @@ fn panic(info: &PanicInfo) -> ! {
         let mut app = APP.borrow_ref_mut(cs);
         let app = app.as_mut().unwrap();
         let display = app.display();
-        display.clear_current_view();
+        display.hide_all();
         let _ = display
             .clock_display()
             .show_text(DisplayPart::MainDisplay, "Erro");
@@ -387,7 +386,7 @@ fn oom(_: Layout) -> ! {
         let mut app = APP.borrow_ref_mut(cs);
         let app = app.as_mut().unwrap();
         let display = app.display();
-        display.clear_current_view();
+        display.hide_all();
         let _ = display
             .clock_display()
             .show_text(DisplayPart::MainDisplay, "oom");

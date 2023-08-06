@@ -1,5 +1,6 @@
 #![cfg_attr(test, no_main)]
 #![no_std]
+#![feature(variant_count)]
 
 use defmt_rtt as _; // global logger
 
@@ -16,8 +17,8 @@ pub mod clock_display_viewer;
 pub mod clock_state;
 pub mod count_down;
 pub mod display;
-pub mod display_view;
 pub mod linear_interpolation;
+pub mod mono_timer;
 pub mod number_digits;
 pub mod seven_segments;
 
