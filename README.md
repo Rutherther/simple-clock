@@ -67,8 +67,3 @@ currently test sending and receiving data using the USB, that is the reason
 why the current program does not even support USB. In the future, the firmware
 should support USB communication and a program for a computer should be made,
 with some kind of CLI for communication with the board.
-
-Another thing that could be done is a bit of a refactoring of the main function.
-I am quite new to Rust and I don't know how to split the initialization of peripherals
-to multiple functions _naturally_. Now the main function is very long, because all initialization
-is in there.
