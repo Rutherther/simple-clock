@@ -36,6 +36,7 @@ use embedded_alloc::Heap;
 use embedded_hal::digital::v2::OutputPin;
 use fugit::MicrosDurationU32;
 use stm32f1xx_hal::{
+    afio::MAPR,
     gpio::{Cr, Floating, Input, Pin},
     pac,
     pac::interrupt,
@@ -46,7 +47,7 @@ use stm32f1xx_hal::{
         Rtc,
     },
     time::MonoTimer,
-    timer::{Event, Tim1NoRemap, Tim2NoRemap, Tim3NoRemap, TimerExt, SysDelay}, afio::MAPR,
+    timer::{Event, SysDelay, Tim1NoRemap, Tim2NoRemap, Tim3NoRemap, TimerExt},
 };
 
 use defmt_rtt as _;
@@ -204,7 +205,12 @@ fn init_leds<'a>(
     let led3 = pb1.into_open_drain_output(gpiob_crl);
     let led4 = pb0.into_open_drain_output(gpiob_crl);
 
-    [Box::new(led1), Box::new(led2), Box::new(led3), Box::new(led4)]
+    [
+        Box::new(led1),
+        Box::new(led2),
+        Box::new(led3),
+        Box::new(led4),
+    ]
 }
 
 fn init_heap() {
@@ -240,8 +246,22 @@ fn main() -> ! {
     let mut afio = dp.AFIO.constrain();
     let (_, pb3, pb4) = afio.mapr.disable_jtag(gpioa.pa15, gpiob.pb3, gpiob.pb4);
 
-    let leds = init_leds(gpiob.pb12, gpiob.pb11, gpiob.pb1, gpiob.pb0, &mut gpiob.crl, &mut gpiob.crh);
-    let btns = init_buttons(gpiob.pb15, gpiob.pb14, gpiob.pb13, gpioc.pc13, &mut gpiob.crh, &mut gpioc.crh);
+    let leds = init_leds(
+        gpiob.pb12,
+        gpiob.pb11,
+        gpiob.pb1,
+        gpiob.pb0,
+        &mut gpiob.crl,
+        &mut gpiob.crh,
+    );
+    let btns = init_buttons(
+        gpiob.pb15,
+        gpiob.pb14,
+        gpiob.pb13,
+        gpioc.pc13,
+        &mut gpiob.crh,
+        &mut gpioc.crh,
+    );
 
     let mut display = init_segment_display(
         gpiob.pb10,
@@ -269,7 +289,7 @@ fn main() -> ! {
         &mut gpiob.crl,
         &mut gpiob.crh,
         &mut afio.mapr,
-        &clocks
+        &clocks,
     );
     display.set_current_view(DisplayViews::ClockSecondsView);
 
@@ -307,7 +327,11 @@ fn main() -> ! {
     main_loop(delay, btns, leds)
 }
 
-fn main_loop(mut delay: SysDelay, mut btns: [Button<ActiveHigh>; 4], mut leds: [Box<dyn OutputPin<Error = Infallible> + Send>; 4]) -> ! {
+fn main_loop(
+    mut delay: SysDelay,
+    mut btns: [Button<ActiveHigh>; 4],
+    mut leds: [Box<dyn OutputPin<Error = Infallible> + Send>; 4],
+) -> ! {
     loop {
         for (i, btn) in btns.iter_mut().enumerate() {
             btn.update();
