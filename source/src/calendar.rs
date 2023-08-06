@@ -190,23 +190,42 @@ impl Calendar {
         self.year
     }
 
-    pub fn second_elapsed(&mut self) {
-        self.seconds = (self.seconds + 1) % 60;
-        let minute_elapsed = self.seconds == 0;
-        self.minutes = (self.minutes + if minute_elapsed { 1 } else { 0 }) % 60;
+    /// Sets the current hour of the day,
+    /// gets clamped to 0 - 24.
+    pub fn set_hours(&mut self, hours: u8) {
+        self.hours = hours.clamp(0, 23);
+    }
 
-        let hour_elapsed = minute_elapsed && self.minutes == 0;
-        self.hours = (self.hours + if hour_elapsed { 1 } else { 0 }) % 24;
+    /// Sets the current minute of the hour,
+    /// gets clamped to 0 - 59.
+    pub fn set_minutes(&mut self, minutes: u8) {
+        self.minutes = minutes.clamp(0, 59);
+    }
 
-        let day_elapsed = hour_elapsed && self.hours == 0;
-        let day = self.day - 1 + if day_elapsed { 1 } else { 0 };
-        let days_in_month = Self::days_in_month(self.month, Self::is_leap_year(self.year));
-        self.day = day % days_in_month + 1;
+    /// Sets the current seconds of the minute,
+    /// gets clamped to 0 - 59.
+    pub fn set_seconds(&mut self, seconds: u8) {
+        self.seconds = seconds.clamp(0, 59);
+    }
 
-        let month_elapsed = day_elapsed && self.day == 1;
-        self.month = (self.month - 1 + if month_elapsed { 1 } else { 0 }) % 12 + 1;
-        let year_elapsed = month_elapsed && self.month == 1;
-        self.year += if year_elapsed { 1 } else { 0 };
+    /// Sets the current day of the month,
+    /// gets clamped to 1 - days in the month.
+    pub fn set_day(&mut self, day: u8) {
+        self.day = day.clamp(1, Self::days_in_month(self.month, Self::is_leap_year(self.year)));
+    }
+
+    /// Sets the current day of the month,
+    /// gets clamped to 1 - days in the month.
+    pub fn set_month(&mut self, month: u8) {
+        self.month = month.clamp(1, 12);
+    }
+
+    /// Sets the current year,
+    /// The minimum is the base year specified
+    /// upon Calendar creation. Lower year
+    /// will be adjusted to base year.
+    pub fn set_year(&mut self, year: u16) {
+        self.year = max(year, self.base_year);
     }
 
     fn is_leap_year(year: u16) -> bool {
