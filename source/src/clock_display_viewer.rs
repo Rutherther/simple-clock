@@ -52,14 +52,14 @@ impl TryFrom<usize> for ClockPart {
 
 pub struct ClockDisplayViewer {
     clock_display: ClockDisplay,
-    parts: [bool; core::mem::variant_count::<ClockPart>()]
+    parts: [bool; core::mem::variant_count::<ClockPart>()],
 }
 
 impl ClockDisplayViewer {
     pub fn new(clock_display: ClockDisplay) -> Self {
         Self {
             clock_display,
-            parts: [false; core::mem::variant_count::<ClockPart>()]
+            parts: [false; core::mem::variant_count::<ClockPart>()],
         }
     }
 
@@ -91,18 +91,18 @@ impl ClockDisplayViewer {
             DisplayView::ClockView => {
                 self.show(ClockPart::Hours);
                 self.show(ClockPart::Minutes);
-            },
+            }
             DisplayView::ClockSecondsView => {
                 self.show(ClockPart::Hours);
                 self.show(ClockPart::Minutes);
                 self.show(ClockPart::Seconds);
-            },
+            }
             DisplayView::ClockDateView => {
                 self.show(ClockPart::Hours);
                 self.show(ClockPart::Minutes);
                 self.show(ClockPart::Day);
                 self.show(ClockPart::Month);
-            },
+            }
             DisplayView::DateView => {
                 self.show(ClockPart::Day);
                 self.show(ClockPart::Month);
@@ -122,28 +122,67 @@ impl ClockDisplayViewer {
             let part: ClockPart = ClockPart::try_from(i).unwrap();
             match part {
                 ClockPart::Day => {
-                    self.clock_display.show_ordinal(DisplayPart::SideDisplay1, state.calendar().day() as u32, true).unwrap();
-                },
+                    self.clock_display
+                        .show_ordinal(
+                            DisplayPart::SideDisplay1,
+                            state.calendar().day() as u32,
+                            true,
+                        )
+                        .unwrap();
+                }
                 ClockPart::Month => {
-                    self.clock_display.show_ordinal(DisplayPart::SideDisplay2, state.calendar().month() as u32, true).unwrap();
-                },
+                    self.clock_display
+                        .show_ordinal(
+                            DisplayPart::SideDisplay2,
+                            state.calendar().month() as u32,
+                            true,
+                        )
+                        .unwrap();
+                }
                 ClockPart::Year => {
-                    self.clock_display.show_number(DisplayPart::MainDisplay, state.calendar().year() as u32, true).unwrap();
-                },
+                    self.clock_display
+                        .show_number(
+                            DisplayPart::MainDisplay,
+                            state.calendar().year() as u32,
+                            true,
+                        )
+                        .unwrap();
+                }
                 ClockPart::Hours => {
-                    self.clock_display.show_number_at(ClockDisplay::get_part_offset(DisplayPart::MainDisplay), 2, state.calendar().hours() as u32, true).unwrap();
-                },
+                    self.clock_display
+                        .show_number_at(
+                            ClockDisplay::get_part_offset(DisplayPart::MainDisplay),
+                            2,
+                            state.calendar().hours() as u32,
+                            true,
+                        )
+                        .unwrap();
+                }
                 ClockPart::Minutes => {
-                    self.clock_display.show_number_at(ClockDisplay::get_part_offset(DisplayPart::MainDisplay) + 2, 2, state.calendar().minutes() as u32, true).unwrap();
-                },
+                    self.clock_display
+                        .show_number_at(
+                            ClockDisplay::get_part_offset(DisplayPart::MainDisplay) + 2,
+                            2,
+                            state.calendar().minutes() as u32,
+                            true,
+                        )
+                        .unwrap();
+                }
                 ClockPart::Seconds => {
-                    self.clock_display.show_number(DisplayPart::SideDisplay2, state.calendar().seconds() as u32, true).unwrap();
-                },
+                    self.clock_display
+                        .show_number(
+                            DisplayPart::SideDisplay2,
+                            state.calendar().seconds() as u32,
+                            true,
+                        )
+                        .unwrap();
+                }
             }
         }
 
         if self.parts[ClockPart::Hours as usize] && self.parts[ClockPart::Minutes as usize] {
-            self.clock_display.set_colon(state.calendar().seconds() % 2 == 0);
+            self.clock_display
+                .set_colon(state.calendar().seconds() % 2 == 0);
         } else {
             self.clock_display.set_colon(false);
         }

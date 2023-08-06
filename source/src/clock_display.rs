@@ -64,7 +64,7 @@ impl ClockDisplay {
         &mut self,
         part: DisplayPart,
         number: u32,
-        pad: bool
+        pad: bool,
     ) -> Result<(), DisplayError> {
         let offset = Self::get_part_offset(part);
         let size = Self::get_part_size(part);

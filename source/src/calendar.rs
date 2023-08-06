@@ -211,7 +211,10 @@ impl Calendar {
     /// Sets the current day of the month,
     /// gets clamped to 1 - days in the month.
     pub fn set_day(&mut self, day: u8) {
-        self.day = day.clamp(1, Self::days_in_month(self.month, Self::is_leap_year(self.year)));
+        self.day = day.clamp(
+            1,
+            Self::days_in_month(self.month, Self::is_leap_year(self.year)),
+        );
     }
 
     /// Sets the current day of the month,
