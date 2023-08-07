@@ -3,6 +3,7 @@ use core::cmp::{max, min};
 #[derive(Clone, PartialEq, Eq)]
 pub struct Calendar {
     base_year: u16,
+    ticks: u32,
     frozen: bool,
     hours: u8,
     minutes: u8,
@@ -27,7 +28,7 @@ impl Calendar {
         month: u8,
         year: u16,
     ) -> Self {
-        Self {
+        let mut result = Self {
             base_year,
             hours,
             minutes,
@@ -36,7 +37,11 @@ impl Calendar {
             month,
             year,
             frozen: false,
-        }
+            ticks: 0,
+        };
+
+        result.ticks = result.to_ticks();
+        result
     }
 
     /// Calculate current date based off of the seconds elapsed since
@@ -113,6 +118,7 @@ impl Calendar {
             month: month as u8,
             year: year as u16,
             frozen: false,
+            ticks: seconds,
         }
     }
 
@@ -141,6 +147,13 @@ impl Calendar {
         ticks
     }
 
+    /// Like Calendar::to_ticks, but the ticks may get
+    /// desynchronized at times. Use Calendar::to_ticks
+    /// for correct ticks.
+    pub fn estimated_ticks(&self) -> u32 {
+        self.ticks
+    }
+
     /// Adds a second, correctly updating
     /// minutes, hours, days, month, year...
     pub fn second_elapsed(&mut self) {
@@ -164,6 +177,8 @@ impl Calendar {
         self.month = (self.month - 1 + if month_elapsed { 1 } else { 0 }) % 12 + 1;
         let year_elapsed = month_elapsed && self.month == 1;
         self.year += if year_elapsed { 1 } else { 0 };
+
+        self.ticks += 1;
     }
 
     pub fn hours(&self) -> u8 {

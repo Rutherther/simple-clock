@@ -115,12 +115,17 @@ impl ClockButton for ButtonSwitchView {
     }
 }
 
+// How long to turn off the brightness adjustment on user brightness change, in seconds
+const BRIGHT_OFF_FOR: u32 = 30 * 60;
+const BRIGHT_CHANGE: i8 = 10; // How much to change the brightness on press
+
 impl ClockButton for ButtonBrightness<Down> {
     fn handle(&self, state: ButtonState, app: AppState) {
         match state {
-            ButtonState::JustPressed => {
+            ButtonState::JustPressed | ButtonState::LongPress => {
+                app.brightness.turn_off_for(&app.state, BRIGHT_OFF_FOR);
                 app.brightness
-                    .set_brightness(app.brightness.brightness() as i8 - 10);
+                    .set_brightness(app.brightness.brightness() as i8 - BRIGHT_CHANGE);
             }
             _ => (),
         }
@@ -130,9 +135,10 @@ impl ClockButton for ButtonBrightness<Down> {
 impl ClockButton for ButtonBrightness<Up> {
     fn handle(&self, state: ButtonState, app: AppState) {
         match state {
-            ButtonState::JustPressed => {
+            ButtonState::JustPressed | ButtonState::LongPress => {
+                app.brightness.turn_off_for(&app.state, BRIGHT_OFF_FOR);
                 app.brightness
-                    .set_brightness(app.brightness.brightness() as i8 + 10);
+                    .set_brightness(app.brightness.brightness() as i8 + BRIGHT_CHANGE);
             }
             _ => (),
         }

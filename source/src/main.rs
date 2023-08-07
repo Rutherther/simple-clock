@@ -15,6 +15,7 @@ pub mod clock_state;
 pub mod count_down;
 pub mod display;
 pub mod linear_interpolation;
+pub mod mono_timer;
 pub mod number_digits;
 pub mod seven_segments;
 

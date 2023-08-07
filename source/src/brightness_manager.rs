@@ -12,6 +12,7 @@ pub struct BrightnessManager {
     brightness_interpolation: LinearInterpolation<u16, u16>,
     current_brightness: u8,
     display_brightness: [u16; 8],
+    off_till: Option<u32>,
 }
 
 impl BrightnessManager {
@@ -49,6 +50,7 @@ impl BrightnessManager {
             ]),
             current_brightness: 100,
             display_brightness: [0xFFFF; 8],
+            off_till: None,
         }
     }
 
@@ -84,16 +86,34 @@ impl BrightnessManager {
             .set_brightness(self.display_brightness);
     }
 
+    /// Turns off the interpolation based on time
+    pub fn turn_off_for(&mut self, state: &ClockState, seconds: u32) {
+        self.off_till = Some(state.calendar().estimated_ticks() + seconds);
+    }
+
     pub fn update(&mut self, state: &ClockState) {
         let calendar = state.calendar();
         let minutes_in_day = calendar.hours() as u16 * 60u16 + calendar.minutes() as u16;
 
-        let interpolated = self
-            .brightness_interpolation
-            .interpolate(minutes_in_day)
-            .unwrap();
-        if self.brightness() != interpolated as u8 {
-            self.set_brightness(interpolated as i8);
+        let set_brightness = if let Some(off_till) = self.off_till {
+            if state.calendar().estimated_ticks() < off_till {
+                false
+            } else {
+                self.off_till = None;
+                true
+            }
+        } else {
+            true
+        };
+
+        if set_brightness {
+            let interpolated = self
+                .brightness_interpolation
+                .interpolate(minutes_in_day)
+                .unwrap();
+            if self.brightness() != interpolated as u8 {
+                self.set_brightness(interpolated as i8);
+            }
         }
     }
 }
