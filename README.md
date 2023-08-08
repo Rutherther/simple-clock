@@ -41,6 +41,49 @@ Mapping of pins to peripherals is documented in [pins](docs/pins.md).
   - [ ] Set time, Get time
   - [ ] Show arbitrary text or number on the display
   - [ ] Start stopwatch
+  
+## Usage
+The clock has two modes, default mode, and edit mode.
+Default mode displays the current time, edit mode is
+for editing the current time.
+
+### Default mode
+This is entered upon reset. Upon startup,
+it displays only current time as hours and minutes.
+
+First button may change the current view, there are
+four views.
+1. time - hours and minutes only
+2. time - with seconds
+3. time and date - hours, minutes, day in month and month
+4. date - year, day in month and month
+
+The second button switches to edit mode.
+
+Third and fourth buttons change brightness.
+The brightness is normally automatically adjusted
+based on the current time set on the clock.
+It may be temporarily changed using these buttons.
+The change will last 30 minutes.
+Third button decreases brightness, fourth increases it.
+
+### Edit mode
+In the edit mode, it's possible to change the time and date.
+Upon entering edit mode, hours will be selected to be changed.
+
+The currently selected field will blink. To select the next field,
+the first button should be used. The order of the fields edited is:
+hours, minutes, seconds, year, month, day.
+
+To increment or decrement the current field, second and third
+buttons should be used, respectively.
+
+To save the time and date, fourth button does the job.
+It may be pressed when editing any field.
+
+When in the edit mode, the time is paused. If you enter the
+edit mode by accident, the clock will probably get behind,
+because a couple of seconds will pass before you exit the edit mode.
 
 ## Images of the clock
 ### Front, off
