@@ -1,43 +1,28 @@
-use core::marker::PhantomData;
-
 use alloc::boxed::Box;
 use stm32f1xx_hal::rtc::Rtc;
 
 use crate::{
     brightness_manager::BrightnessManager,
     button::ButtonState,
-    clock_display_viewer::{ClockDisplayViewer, DisplayView},
-    clock_state::ClockState,
+    clock_display_viewer::ClockDisplayViewer,
+    clock_state::ClockState, app_mode::{ClockAppMode, ClockAppModes, default_app_mode::DefaultAppMode, edit_app_mode::EditAppMode},
 };
 
 pub struct ClockApp {
     rtc: Rtc,
     display: ClockDisplayViewer,
     state: ClockState,
-    buttons: [Box<dyn ClockButton + Send>; 4],
+    modes: [Box<dyn ClockAppMode + Send>; core::mem::variant_count::<ClockAppModes>()],
     brightness: BrightnessManager,
-    current_view: DisplayView,
+    current_mode: ClockAppModes,
 }
 
-struct AppState<'a> {
-    rtc: &'a mut Rtc,
-    display: &'a mut ClockDisplayViewer,
-    state: &'a mut ClockState,
-    brightness: &'a mut BrightnessManager,
-    current_view: &'a mut DisplayView,
-}
-
-trait ClockButton {
-    fn handle(&self, state: ButtonState, state: AppState);
-}
-
-struct ButtonSwitchView;
-struct ButtonChangeTime;
-
-struct Up;
-struct Down;
-struct ButtonBrightness<Direction> {
-    direction: PhantomData<Direction>,
+pub struct AppState<'a> {
+    pub rtc: &'a mut Rtc,
+    pub display: &'a mut ClockDisplayViewer,
+    pub state: &'a mut ClockState,
+    pub brightness: &'a mut BrightnessManager,
+    pub current_mode: &'a mut ClockAppModes,
 }
 
 pub enum ClockInterrupt {
@@ -51,16 +36,10 @@ impl ClockApp {
             rtc,
             display,
             state,
-            current_view: DisplayView::ClockView,
-            buttons: [
-                Box::new(ButtonSwitchView),
-                Box::new(ButtonChangeTime),
-                Box::new(ButtonBrightness::<Down> {
-                    direction: PhantomData::<Down>,
-                }),
-                Box::new(ButtonBrightness::<Up> {
-                    direction: PhantomData::<Up>,
-                }),
+            current_mode: ClockAppModes::NormalMode,
+            modes: [
+                Box::new(DefaultAppMode::new()),
+                Box::new(EditAppMode::new())
             ],
             brightness: BrightnessManager::new(),
         }
@@ -74,23 +53,48 @@ impl ClockApp {
             }
             ClockInterrupt::DisplayTimer => {
                 let _ = self.display.update(&self.state);
-                self.brightness.update(&self.state);
                 self.brightness.apply_brightness(&mut self.display);
+
+                let mut mode = self.current_mode;
+                let app_state = AppState {
+                    rtc: &mut self.rtc,
+                    display: &mut self.display,
+                    state: &mut self.state,
+                    brightness: &mut self.brightness,
+                    current_mode: &mut mode,
+                };
+                self.modes[self.current_mode as usize].update(app_state);
             }
         }
     }
 
     pub fn handle_button(&mut self, index: usize, state: ButtonState) {
-        self.buttons[index].handle(
-            state,
-            AppState {
+        let mut mode = self.current_mode;
+        let current_mode = self.modes[self.current_mode as usize].as_mut();
+
+        {
+            let app_state = AppState {
                 rtc: &mut self.rtc,
                 display: &mut self.display,
                 state: &mut self.state,
                 brightness: &mut self.brightness,
-                current_view: &mut self.current_view,
-            },
-        );
+                current_mode: &mut mode,
+            };
+
+            current_mode.handle_button(app_state, index, state);
+        }
+
+        if self.current_mode != mode {
+            let mut temp_mode = mode;
+            {
+                current_mode.stop(AppState { rtc: &mut self.rtc, display: &mut self.display, state: &mut self.state, brightness: &mut self.brightness, current_mode: &mut temp_mode });
+            }
+
+            self.current_mode = temp_mode;
+
+            let current_mode = self.modes[self.current_mode as usize].as_mut();
+            current_mode.run(AppState { rtc: &mut self.rtc, display: &mut self.display, state: &mut self.state, brightness: &mut self.brightness, current_mode: &mut temp_mode });
+        }
     }
 
     pub fn display(&mut self) -> &mut ClockDisplayViewer {
@@ -98,72 +102,3 @@ impl ClockApp {
     }
 }
 
-impl ClockButton for ButtonSwitchView {
-    fn handle(&self, state: ButtonState, app: AppState) {
-        match state {
-            ButtonState::JustPressed => {
-                let display = app.display;
-                let current_view = *app.current_view as usize;
-                let new_view = ((current_view + 1) % core::mem::variant_count::<DisplayView>())
-                    .try_into()
-                    .unwrap();
-                display.set_current_view(new_view);
-                *app.current_view = new_view;
-            }
-            _ => (),
-        }
-    }
-}
-
-// How long to turn off the brightness adjustment on user brightness change, in seconds
-const BRIGHT_OFF_FOR: u32 = 30 * 60;
-const BRIGHT_CHANGE: i8 = 10; // How much to change the brightness on press
-
-impl ClockButton for ButtonBrightness<Down> {
-    fn handle(&self, state: ButtonState, app: AppState) {
-        match state {
-            ButtonState::JustPressed | ButtonState::LongPress => {
-                app.brightness.turn_off_for(&app.state, BRIGHT_OFF_FOR);
-                app.brightness
-                    .set_brightness(app.brightness.brightness() as i8 - BRIGHT_CHANGE);
-            }
-            _ => (),
-        }
-    }
-}
-
-impl ClockButton for ButtonBrightness<Up> {
-    fn handle(&self, state: ButtonState, app: AppState) {
-        match state {
-            ButtonState::JustPressed | ButtonState::LongPress => {
-                app.brightness.turn_off_for(&app.state, BRIGHT_OFF_FOR);
-                app.brightness
-                    .set_brightness(app.brightness.brightness() as i8 + BRIGHT_CHANGE);
-            }
-            _ => (),
-        }
-    }
-}
-
-impl ClockButton for ButtonChangeTime {
-    fn handle(&self, state: ButtonState, app: AppState) {
-        match state {
-            ButtonState::JustPressed => {
-                app.rtc.set_time(app.rtc.current_time() + 2);
-            }
-            _ => (),
-        }
-    }
-}
-
-// to edit date, second button can be used
-// to enter edit mode
-// DateEditMode
-//   editing_field
-//     1. Hours, 2. Minutes, 3. Seconds,
-//     4. Year,  5. Month,   6. Day
-//   button functions:
-//     1. next field
-//     2. current_field++
-//     3. current_field--
-//     4. set

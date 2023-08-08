@@ -2,6 +2,7 @@
 #![no_main]
 #![feature(alloc_error_handler)]
 #![feature(variant_count)]
+#![feature(adt_const_params)]
 
 extern crate alloc;
 
@@ -18,6 +19,7 @@ pub mod linear_interpolation;
 pub mod mono_timer;
 pub mod number_digits;
 pub mod seven_segments;
+pub mod app_mode;
 
 use alloc::boxed::Box;
 use button::{ActiveHigh, Button, ButtonState};

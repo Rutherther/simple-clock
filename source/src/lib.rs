@@ -1,6 +1,7 @@
 #![cfg_attr(test, no_main)]
 #![no_std]
 #![feature(variant_count)]
+#![feature(adt_const_params)]
 
 use defmt_rtt as _; // global logger
 
@@ -21,6 +22,7 @@ pub mod linear_interpolation;
 pub mod mono_timer;
 pub mod number_digits;
 pub mod seven_segments;
+pub mod app_mode;
 
 extern crate alloc;
 

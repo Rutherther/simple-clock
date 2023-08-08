@@ -1,4 +1,4 @@
-use core::cmp::{max, min};
+use core::cmp::max;
 
 #[derive(Clone, PartialEq, Eq)]
 pub struct Calendar {
@@ -46,7 +46,7 @@ impl Calendar {
 
     /// Calculate current date based off of the seconds elapsed since
     /// a base date
-    pub fn from_ticks(base_year: u16, mut seconds: u32) -> Self {
+    pub fn from_ticks(base_year: u16, seconds: u32) -> Self {
         let total_seconds = seconds;
         let seconds = total_seconds % 60;
 
@@ -255,7 +255,7 @@ impl Calendar {
     }
 
     pub fn unfreeze(&mut self) {
-        self.frozen = true;
+        self.frozen = false;
     }
 
     fn days_in_month(month: u8, leap_year: bool) -> u8 {

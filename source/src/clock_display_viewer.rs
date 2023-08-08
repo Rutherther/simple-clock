@@ -1,5 +1,3 @@
-use core::mem;
-
 use crate::{
     clock_display::{ClockDisplay, DisplayPart},
     clock_state::ClockState,
@@ -29,6 +27,7 @@ impl TryFrom<usize> for DisplayView {
 
 #[derive(Copy, Clone, PartialEq, Eq)]
 #[repr(usize)]
+#[derive(core::marker::ConstParamTy)]
 pub enum ClockPart {
     Hours = 0,
     Minutes = 1,
@@ -75,10 +74,6 @@ impl ClockDisplayViewer {
         for part in self.parts.iter_mut() {
             *part = false;
         }
-
-        self.clock_display.hide(DisplayPart::MainDisplay);
-        self.clock_display.hide(DisplayPart::SideDisplay1);
-        self.clock_display.hide(DisplayPart::SideDisplay2);
     }
 
     pub fn clock_display(&mut self) -> &mut ClockDisplay {
@@ -178,6 +173,22 @@ impl ClockDisplayViewer {
                         .unwrap();
                 }
             }
+        }
+
+        if !self.parts[ClockPart::Day as usize] {
+            self.clock_display.hide(DisplayPart::SideDisplay1);
+        }
+
+        if !self.parts[ClockPart::Month as usize] && !self.parts[ClockPart::Seconds as usize] {
+            self.clock_display.hide(DisplayPart::SideDisplay2);
+        }
+
+        if !self.parts[ClockPart::Hours as usize] && !self.parts[ClockPart::Year as usize] {
+            self.clock_display.hide_at(ClockDisplay::get_part_offset(DisplayPart::MainDisplay), 2);
+        }
+
+        if !self.parts[ClockPart::Minutes as usize] && !self.parts[ClockPart::Year as usize] {
+            self.clock_display.hide_at(ClockDisplay::get_part_offset(DisplayPart::MainDisplay) + 2, 2);
         }
 
         if self.parts[ClockPart::Hours as usize] && self.parts[ClockPart::Minutes as usize] {

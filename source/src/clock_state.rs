@@ -20,6 +20,10 @@ impl ClockState {
         &self.calendar
     }
 
+    pub fn mut_calendar(&mut self) -> &mut Calendar {
+        &mut self.calendar
+    }
+
     pub fn second_elapsed(&mut self) {
         self.calendar.second_elapsed()
     }

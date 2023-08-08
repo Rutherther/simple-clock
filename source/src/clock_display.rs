@@ -124,6 +124,11 @@ impl ClockDisplay {
         let offset = Self::get_part_offset(part);
         let size = Self::get_part_size(part);
 
+        self.hide_at(offset, size);
+    }
+
+    pub fn hide_at(&mut self, offset: usize, size: usize) {
+
         let mut data = self.display.data();
         for current_data in data.iter_mut().skip(offset).take(size) {
             *current_data = 0;
