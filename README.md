@@ -28,9 +28,10 @@ Mapping of pins to peripherals is documented in [pins](docs/pins.md).
 
 ## Features / Roadmap
 
-- [-] Remember date, time
+- [x] Remember date, time
   - [x] Time
-  - [-] Date (does not calculate months, years correctly)
+  - [x] Date
+- [x] Set time and date using simple interface
 - [x] Switch between view modes by button
 - [x] Show time, date
 - [x] Adjust brightness using PWM
@@ -55,13 +56,6 @@ Mapping of pins to peripherals is documented in [pins](docs/pins.md).
 <img src="img/front_clock_date.jpg" alt="Front, clock and date" width=800>
 
 ## What's next
-Currently the project does not support setting the clock using the buttons,
-to set the clock, it's required to use `rtc.set_time` by flashing a program
-with this line. Then this line should be removed, that will ensure the clock is
-remembered even on power down - if battery is connected. For adjustments,
-a button has to be programmed to add/remove a second or two, to get the clock
-synchronized with real time.
-
 Unfortunately, I did not solder the USB correctly on my board, so I cannot
 currently test sending and receiving data using the USB, that is the reason
 why the current program does not even support USB. In the future, the firmware
